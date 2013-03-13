@@ -13,6 +13,10 @@ public class ControlPanel : MonoBehaviour {
 	MDIInputModule MDIInput_Script;
 	MDIFunctionModule MDIFunction_Script;
 	MDIEditModule MDIEdit_Script;
+	ModeSelectModule ModeSelect_Script;
+	FeedrateModule Feedrate_Script;
+	MachineFunctionModule MachineFunction_Script;
+	AuxiliaryFunctionModule AuxiliaryFunction_Script;
 	MoveControl MoveControl_script;
 	SpindleControl SpindleControl_script;
 	CooSystem CooSystem_script;
@@ -298,6 +302,15 @@ public class ControlPanel : MonoBehaviour {
 	Rect power_notifi_window = new Rect(Screen.width / 2f, Screen.height / 2f, 200f, 100f); 
 	public float move_rate = 1f;
 	
+	//宋荣 
+	public bool operationBottomScrInitial=false;//position模式下按下操作键的初始界面显示标志
+	public bool operationBottomScrExecute=false;//position模式下按下执行界面显示标志
+	public bool partsNumBlink=false;//零件数闪烁标志
+	public bool runtimeIsBlink=false;//运行时间闪烁标志
+	public bool posOperationMode=false;//position下按下操作键,用来屏蔽第一、二、三个按钮的操作。
+	public int statusBeforeOperation=-1;
+	//public bool posX
+	//宋荣
 	void Awake () 
 	{
 		gameObject.AddComponent("PositionModule");
@@ -314,6 +327,15 @@ public class ControlPanel : MonoBehaviour {
 		MDIFunction_Script = gameObject.GetComponent<MDIFunctionModule>();
 		gameObject.AddComponent("MDIEditModule");
 		MDIEdit_Script = gameObject.GetComponent<MDIEditModule>();
+		gameObject.AddComponent("ModeSelectModule");
+		ModeSelect_Script = gameObject.GetComponent<ModeSelectModule>();
+		gameObject.AddComponent("FeedrateModule");
+		Feedrate_Script = gameObject.GetComponent<FeedrateModule>();
+		gameObject.AddComponent("MachineFunctionModule");
+		MachineFunction_Script = gameObject.GetComponent<MachineFunctionModule>();
+		gameObject.AddComponent("AuxiliaryFunctionModule");
+		AuxiliaryFunction_Script = gameObject.GetComponent<AuxiliaryFunctionModule>();
+		
 		GameObject.Find("move_control").AddComponent("MoveControl");
 		MoveControl_script = GameObject.Find("move_control").GetComponent<MoveControl>();
 		GameObject.Find("spindle_control").AddComponent("SpindleControl");
@@ -775,6 +797,11 @@ public class ControlPanel : MonoBehaviour {
 			ScreenPrintArea();	
 		}
 		
+		//以上部分为屏幕显示区域，所有有关屏幕GUI效果的变化都通过上述函数增添和编辑
+		
+		//*********************************************************************************************************************
+		
+		
 		//屏幕启动和关闭界面
 		if(ScreenCover)
 			GUI.Box(new Rect(40f/1000f*width,30f/1000f*height,500f/1000f*width,420f/1000f*height),"",sty_ScreenCover);
@@ -828,77 +855,15 @@ public class ControlPanel : MonoBehaviour {
 		//(3)
 		GUI.Box(new Rect(195f/1000f*width,625f/1000f*height,770f/1000f*width,145f/1000f*height),"");
 		
-		ModeSelectButton();
+		//模式选择旋钮
+		ModeSelect_Script.ModeSelectButton();
 		
-		FeedrateSelect();
+		//手动进给速率旋钮
+		Feedrate_Script.FeedrateSelect();
 	
-		if (GUI.Button(new Rect(680f/1000f*width, 640f/1000f*height, 50f/1000f*width, 50f/1000f*height), "MLK"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if (GUI.Button(new Rect(750f/1000f*width, 640f/1000f*height, 50f/1000f*width, 50f/1000f*height), "DRN"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if (GUI.Button(new Rect(820f/1000f*width, 640f/1000f*height, 50f/1000f*width, 50f/1000f*height), "BDT"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if (GUI.Button(new Rect(890f/1000f*width, 640f/1000f*height, 50f/1000f*width, 50f/1000f*height), "SBK"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		
-		
-		if (GUI.Button(new Rect(680f/1000f*width, 700f/1000f*height, 50f/1000f*width, 50f/1000f*height), "OSP"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if (GUI.Button(new Rect(750f/1000f*width, 700f/1000f*height, 50f/1000f*width, 50f/1000f*height), "ZLOCK"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if(GUI.Button(new Rect(820f/1000f*width, 700f/1000f*height, 50f/1000f*width, 50f/1000f*height), ""))
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if(GUI.Button(new Rect(890f/1000f*width, 700f/1000f*height, 50f/1000f*width, 50f/1000f*height), ""))
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		
+		//机床功能按键
+		MachineFunction_Script.MachineFunction();
+
 		
 		//(4)
 		GUI.Box(new Rect(40f/1000f*width,775f/1000f*height,925f/1000f*width,200f/1000f*height),"");
@@ -907,6 +872,7 @@ public class ControlPanel : MonoBehaviour {
 		
 		GUI.DrawTexture(new Rect(100f/1000f*width,790f/1000f*height,110f/1000f*width,110f/1000f*height), t2d_Emergency, ScaleMode.ScaleAndCrop, true, 1f);
 		
+		//紧急停止按钮   待完善
 		if (GUI.Button(new Rect(80f/1000f*width, 790f/1000f*height, 150f/1000f*width, 110f/1000f*height), "", sty_ButtonEmpty))            
 		{
 			if(ScreenPower)
@@ -923,6 +889,7 @@ public class ControlPanel : MonoBehaviour {
 			}
 		}
 		
+		//循环启动 待完善
 		GUI.color = Color.green;
 		GUI.contentColor = Color.green;
 		if (GUI.Button(new Rect(80f/1000f*width, 920f/1000f*height, 70f/1000f*width, 40f/1000f*height), "I"))            
@@ -936,7 +903,7 @@ public class ControlPanel : MonoBehaviour {
 				power_notification = true;
 			}
 		}
-		
+		//进给保持按钮  待完善
 		GUI.color = Color.yellow;
 		GUI.contentColor = Color.yellow;
 		if (GUI.Button(new Rect(160f/1000f*width, 920f/1000f*height, 70f/1000f*width, 40f/1000f*height), "O"))            
@@ -950,88 +917,18 @@ public class ControlPanel : MonoBehaviour {
 				power_notification = true;
 			}
 		}
-		// 1)
-		
 		GUI.color = Color.white;
 		GUI.contentColor = Color.white;
-		if (GUI.Button(new Rect(280f/1000f*width, 790f/1000f*height, 50f/1000f*width, 50f/1000f*height), "COOL"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
 		
-		if (GUI.Button(new Rect(340f/1000f*width, 790f/1000f*height, 50f/1000f*width, 50f/1000f*height), ""))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		};
+		// 机床辅助功能按键
+		AuxiliaryFunction_Script.AuxiliaryFunction();
 		
-		if (GUI.Button(new Rect(400f/1000f*width, 790f/1000f*height, 50f/1000f*width, 50f/1000f*height), "MHS"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-
-		if (GUI.Button(new Rect(280f/1000f*width, 850f/1000f*height, 50f/1000f*width, 50f/1000f*height), "ATCW"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if (GUI.Button(new Rect(340f/1000f*width, 850f/1000f*height, 50f/1000f*width, 50f/1000f*height), "ATCCW"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if (GUI.Button(new Rect(400f/1000f*width, 850f/1000f*height, 50f/1000f*width, 50f/1000f*height), "MHRN"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-
-		if (GUI.Button(new Rect(280f/1000f*width, 910f/1000f*height, 50f/1000f*width, 50f/1000f*height), "FOR"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if (GUI.Button(new Rect(340f/1000f*width, 910f/1000f*height, 50f/1000f*width, 50f/1000f*height), "BACK"))            
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-		
-		if(GUI.Button(new Rect(400f/1000f*width, 910f/1000f*height, 50f/1000f*width, 50f/1000f*height), ""))
-		{
-			if(ScreenPower)
-			{
-				
-			}
-		}
-
-		// 2)
+		// 手动进给按钮 待完善
 		ManualOperationButton();
-		// 3)
+		
+		// 主轴旋转控制按钮  待完善
 		SpindleControl();
-		
-		
+
 		GUI.DragWindow();    
 	}
 	
@@ -1055,6 +952,7 @@ public class ControlPanel : MonoBehaviour {
 		GUI.Label(new Rect(449f/1000f*width,30f/1000f*height,500f/1000f*width,300f/1000f*height),LineNumFormat(LineNum), sty_SmallNum);
 		GUI.Label(new Rect(40f/1000f*width,345f/1000f*height,500f/1000f*width,25f/1000f*height),"", sty_TopLabel);
 		GUI.Label(new Rect(43f/1000f*width,345f/1000f*height,500f/1000f*width,300f/1000f*height),"A", sty_BottomAST);
+		//GUI.Label(new Rect(100f/1000f*width,345f/1000f*height,500f/1000f*width,300f/1000f*height),"X",sty_BottomAST);
 		GUI.Label(new Rect(64f/1000f*width,346f/1000f*height,500f/1000f*width,300f/1000f*height),"> ", sty_Cursor);
 		GUI.Label(new Rect(350f/1000f*width,373f/1000f*height,500f/1000f*width,300f/1000f*height),"S              T        ", sty_BottomAST);
 		GUI.Label(new Rect(360f/1000f*width,371f/1000f*height,500f/1000f*width,300f/1000f*height),NumberFormat(SpindleSpeed), sty_SmallNum);
@@ -1129,309 +1027,6 @@ public class ControlPanel : MonoBehaviour {
 			}
 			ScreenPower = false;
 		}
-	}
-	
-	void ModeSelectButton () 
-	{
-		GUI.DrawTexture(new Rect(215f/1000f*width,655f/1000f*height,182f/1000f*width,83.9F/1000f*height), t2d_ModeSelect, ScaleMode.ScaleAndCrop, true, 2.17f);
-		if (GUI.Button(new Rect(215f/1000f*width, 716f/1000f*height, 60f/1000f*width, 22f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			MenuDisplay = "编辑";
-			t2d_ModeSelect = t2d_ModeSelectEDIT;
-			PlayerPrefs.SetInt("ModeSelect", 1);
-			ProgEDIT = true;
-			ProgDNC = false;
-			ProgAUTO = false;
-			ProgMDI = false;
-			ProgHAN = false;
-			ProgJOG = false;
-			ProgREF = false;
-		}
-		
-		if (GUI.Button(new Rect(215f/1000f*width, 693f/1000f*height, 55f/1000f*width, 22f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			MenuDisplay = "DNC";
-			t2d_ModeSelect = t2d_ModeSelectDNC;
-			PlayerPrefs.SetInt("ModeSelect", 2);
-			ProgEDIT = false;
-			ProgDNC = true;
-			ProgAUTO = false;
-			ProgMDI = false;
-			ProgHAN = false;
-			ProgJOG = false;
-			ProgREF = false;
-		}
-		if (GUI.Button(new Rect(222f/1000f*width, 672f/1000f*height, 58f/1000f*width, 22f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			MenuDisplay = "AUTO";
-			t2d_ModeSelect = t2d_ModeSelectAUTO;
-			PlayerPrefs.SetInt("ModeSelect", 3);
-			//automode
-			if(ProgAUTO == false && AutoProgName != ProgramNum && Code01 != "")
-			{
-				AutoProgName = ProgramNum;
-				Debug.Log(CodeForAll[0]);
-				Debug.Log(CodeForAll[1]);
-				CompileNC_script.motionCode = new List<CodeClass>();
-				CompileNC_script.CodeCompile(CodeForAll);
-				for(int i = 0; i < CompileNC_script.motionCode.Count; i++)
-				{
-					Debug.Log(CompileNC_script.motionCode[i]);
-				}
-				
-			}
-			ProgEDIT =false;
-			ProgDNC = false;
-			ProgAUTO = true;
-			ProgMDI = false;
-			ProgHAN = false;
-			ProgJOG = false;
-			ProgREF = false;
-		}
-		if (GUI.Button(new Rect(280f/1000f*width, 650f/1000f*height, 20f/1000f*width, 40f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			MenuDisplay = "MDI";
-			t2d_ModeSelect = t2d_ModeSelectMDI;
-			PlayerPrefs.SetInt("ModeSelect", 4);
-			ProgEDIT = false;
-			ProgDNC = false;
-			ProgAUTO = false;
-			ProgMDI = true;
-			ProgHAN = false;
-			ProgJOG = false;
-			ProgREF = false;
-		}
-		if (GUI.Button(new Rect(302f/1000f*width, 650f/1000f*height, 15f/1000f*width, 43f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			MenuDisplay = "HAN";
-			t2d_ModeSelect = t2d_ModeSelectHANDLE;
-			PlayerPrefs.SetInt("ModeSelect", 5);
-			ProgEDIT = false;
-			ProgDNC = false;
-			ProgAUTO = false;
-			ProgMDI = false;
-			ProgHAN = true;
-			ProgJOG = false;
-			ProgREF = false;
-		}
-		if (GUI.Button(new Rect(317f/1000f*width, 650f/1000f*height, 50f/1000f*width, 25f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			MenuDisplay = "HAN";
-			t2d_ModeSelect = t2d_ModeSelectHANDLE;
-			PlayerPrefs.SetInt("ModeSelect", 5);
-			ProgEDIT = false;
-			ProgDNC = false;
-			ProgAUTO = false;
-			ProgMDI = false;
-			ProgHAN =true;
-			ProgJOG = false;
-			ProgREF = false;
-		}
-		
-		if (GUI.Button(new Rect(319f/1000f*width, 674f/1000f*height, 58f/1000f*width, 22f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			MenuDisplay = "JOG";	
-			t2d_ModeSelect = t2d_ModeSelectJOG;
-			PlayerPrefs.SetInt("ModeSelect", 6);
-			MoveControl_script.speed_to_move = 0.10201F;
-			MoveControl_script.move_rate = move_rate;
-			ProgEDIT = false;	
-			ProgDNC = false;
-			ProgAUTO = false;
-			ProgMDI = false;
-			ProgHAN = false;
-			ProgJOG = true;
-			ProgREF = false;
-		}
-		if (GUI.Button(new Rect(319f/1000f*width, 698f/1000f*height, 58f/1000f*width, 22f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			MenuDisplay = "REF";
-			t2d_ModeSelect = t2d_ModeSelectREF;
-			PlayerPrefs.SetInt("ModeSelect", 7);
-			MoveControl_script.speed_to_move = 0.60201F;
-			MoveControl_script.move_rate = 1.0f;
-			ProgEDIT = false;
-			ProgDNC = false;	
-			ProgAUTO = false;
-			ProgMDI = false;
-			ProgHAN = false;
-			ProgJOG = false;
-			ProgREF = true;
-		}
-	}
-	
-	void FeedrateSelect()
-	{
-		GUI.DrawTexture(new Rect(480f/1000f*width,633f/1000f*height,168.66f/1000f*width,126.15f/1000f*height), t2d_feedrate, ScaleMode.ScaleAndCrop, true, 1.378f);
-		if (GUI.Button(new Rect(455f/1000f*width, 730f/1000f*height, 60f/1000f*width, 22f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_0;
-			PlayerPrefs.SetInt("FeedrateSelect", 1);
-			move_rate = 0f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(455f/1000f*width, 712f/1000f*height, 60f/1000f*width, 19f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_10;
-			PlayerPrefs.SetInt("FeedrateSelect", 2);
-			move_rate = 0.1f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(460f/1000f*width, 697/1000f*height, 60f/1000f*width, 15f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_20;
-			PlayerPrefs.SetInt("FeedrateSelect", 3);
-			move_rate = 0.2f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(460f/1000f*width, 682/1000f*height, 60f/1000f*width, 15f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_30;
-			PlayerPrefs.SetInt("FeedrateSelect", 4);
-			move_rate = 0.3f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(463f/1000f*width, 667/1000f*height, 60f/1000f*width, 15f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_40;
-			PlayerPrefs.SetInt("FeedrateSelect", 5);
-			move_rate = 0.4f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(463f/1000f*width, 647/1000f*height, 40f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_40;
-			PlayerPrefs.SetInt("FeedrateSelect", 5);
-			move_rate = 0.4f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(503f/1000f*width, 647/1000f*height, 25f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_50;
-			PlayerPrefs.SetInt("FeedrateSelect", 6);
-			move_rate = 0.5f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(490f/1000f*width, 627/1000f*height, 30f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_50;
-			PlayerPrefs.SetInt("FeedrateSelect", 6);
-			move_rate = 0.5f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(520f/1000f*width, 627/1000f*height, 20f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_60;
-			PlayerPrefs.SetInt("FeedrateSelect", 7);
-			move_rate = 0.6f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(528f/1000f*width, 647/1000f*height, 17f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_60;
-			PlayerPrefs.SetInt("FeedrateSelect", 7);
-			move_rate = 0.6f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(545f/1000f*width, 647/1000f*height, 15f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_70;
-			PlayerPrefs.SetInt("FeedrateSelect", 8);
-			move_rate = 0.7f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(540f/1000f*width, 627/1000f*height, 20f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_70;
-			PlayerPrefs.SetInt("FeedrateSelect", 8);
-			move_rate = 0.7f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(560f/1000f*width, 627/1000f*height, 20f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_80;
-			PlayerPrefs.SetInt("FeedrateSelect", 9);
-			move_rate = 0.8f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(560f/1000f*width, 647/1000f*height, 15f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_80;
-			PlayerPrefs.SetInt("FeedrateSelect", 9);
-			move_rate = 0.8f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(580f/1000f*width, 627/1000f*height, 20f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_90;
-			PlayerPrefs.SetInt("FeedrateSelect", 10);
-			move_rate = 0.9f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(575f/1000f*width, 647/1000f*height, 15f/1000f*width, 20f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_90;
-			PlayerPrefs.SetInt("FeedrateSelect", 10);
-			move_rate = 0.9f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(590f/1000f*width, 647/1000f*height, 12f/1000f*width, 25f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_100;
-			PlayerPrefs.SetInt("FeedrateSelect", 11);
-			move_rate = 1.0f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(600f/1000f*width, 627/1000f*height, 20f/1000f*width, 30f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_100;
-			PlayerPrefs.SetInt("FeedrateSelect", 11);
-			move_rate = 1.0f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(602f/1000f*width, 657/1000f*height, 12f/1000f*width, 25f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_110;
-			PlayerPrefs.SetInt("FeedrateSelect", 12);
-			move_rate = 1.1f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(614f/1000f*width, 657/1000f*height, 25f/1000f*width, 18f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_110;
-			PlayerPrefs.SetInt("FeedrateSelect", 12);
-			move_rate = 1.1f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(602f/1000f*width, 677/1000f*height, 40f/1000f*width, 19f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_120;
-			PlayerPrefs.SetInt("FeedrateSelect", 13);
-			move_rate = 1.2f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(602f/1000f*width, 696/1000f*height, 45f/1000f*width, 17f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_130;
-			PlayerPrefs.SetInt("FeedrateSelect", 14);
-			move_rate = 1.3f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(602f/1000f*width, 713/1000f*height, 45f/1000f*width, 17f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_140;
-			PlayerPrefs.SetInt("FeedrateSelect", 15);
-			move_rate = 1.4f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		if (GUI.Button(new Rect(602f/1000f*width, 730/1000f*height, 45f/1000f*width, 27f/1000f*height), "", sty_ButtonEmpty))            
-		{
-			t2d_feedrate = t2d_FeedRate_150;
-			PlayerPrefs.SetInt("FeedrateSelect", 16);
-			move_rate = 1.5f;
-			MoveControl_script.move_rate = move_rate;
-		}
-		//GUIUtility
 	}
 	
 	void ManualOperationButton () {

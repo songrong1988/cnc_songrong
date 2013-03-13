@@ -8,11 +8,21 @@ public class SoftkeyModule : MonoBehaviour {
 	ControlPanel Main;
 	CooSystem CooSystem_script;
 	MDIEditModule MDIEdit_Script;
+	//宋荣
+	PositionModule Pos_Script;
+	MDIInputModule MDIInput_Script;
+	bool preSetSelected=false;
+	//宋荣
 	// Use this for initialization
 	void Start () {
 		Main = gameObject.GetComponent<ControlPanel>();
 		CooSystem_script = gameObject.GetComponent<CooSystem>();
 		MDIEdit_Script = gameObject.GetComponent<MDIEditModule>();
+		//宋荣
+		Pos_Script=gameObject.GetComponent<PositionModule>();
+	    MDIInput_Script=gameObject.GetComponent<MDIInputModule>();
+		//宋荣
+		
 	}
 	
 	public void Softkey () 
@@ -64,6 +74,51 @@ public class SoftkeyModule : MonoBehaviour {
 	//向前翻页软键
 	void PreviousPage () {
 		//程序界面时按下
+		//宋荣
+		if(Main.PosMenu)
+		{
+			if(Main.operationBottomScrInitial)
+			{
+				if(Main.statusBeforeOperation==1)
+				{
+					Main.RelativeCoo=false;
+				    Main.AbsoluteCoo=true;
+				    Main.GeneralCoo=false;
+				}
+				if(Main.statusBeforeOperation==2)
+				{
+					Main.RelativeCoo=true;
+				    Main.AbsoluteCoo=false;
+				    Main.GeneralCoo=false;
+				}
+				if(Main.statusBeforeOperation==3)
+				{
+					Main.RelativeCoo=false;
+				    Main.AbsoluteCoo=false;
+				    Main.GeneralCoo=true;
+				}
+				Main.operationBottomScrInitial=false;
+				Main.posOperationMode=false;
+				Pos_Script.xBlink=false;
+				Pos_Script.yBlink=false;
+				Pos_Script.zBlink=false;
+				MDIInput_Script.isXSelected=false;
+			    MDIInput_Script.isYSelected=false;
+				MDIInput_Script.isZSelected=false;
+				//Debug.Log("operationeInitial is true");
+			}
+			
+			else if(Main.operationBottomScrExecute)
+			{
+				//Debug.Log("operationexec");
+				Main.operationBottomScrInitial=true;
+				Main.operationBottomScrExecute=false;
+				Main.runtimeIsBlink=false;
+				Main.partsNumBlink=false;
+				
+			}
+		}
+		//宋荣
 		if(Main.ProgMenu)
 		{
 			if(Main.ProgEDIT)
@@ -122,9 +177,51 @@ public class SoftkeyModule : MonoBehaviour {
 		if(Main.PosMenu)
 		{
 			//绝对坐标
+			//宋荣
+			if(Main.posOperationMode)
+			{
+				/*if(Main.statusBeforeOperation==1)
+				{
+					Pos_Script.preSetAbsoluteCoo=CooSystem_script.absolute_pos;
+					Debug.Log("预置成功");
+				}
+				if((Main.statusBeforeOperation==2||Main.statusBeforeOperation==3)&&(MDIInput_Script.isXSelected||MDIInput_Script.isYSelected||MDIInput_Script.isZSelected))
+				{
+					Pos_Script.preSetRelativeCoo=CooSystem_script.relative_pos;
+					Debug.Log("预置相对坐标成功");
+				}*/
+				if(Main.operationBottomScrInitial)
+			    {
+				   if(Main.statusBeforeOperation==1)
+					{
+						Main.operationBottomScrInitial=false;
+				        Main.operationBottomScrExecute=true;
+				        preSetSelected=true;
+					}
+				   
+				   if((Main.statusBeforeOperation==2||Main.statusBeforeOperation==3)&&(MDIInput_Script.isXSelected||MDIInput_Script.isYSelected||MDIInput_Script.isZSelected))
+				   {
+					    Pos_Script.preSetRelativeCoo=CooSystem_script.relative_pos;
+						if(MDIInput_Script.isXSelected)
+							Debug.Log("预置相对坐标x成功");
+						if(MDIInput_Script.isYSelected)
+							Debug.Log("预置相对坐标y成功");
+						if(MDIInput_Script.isZSelected)
+							Debug.Log("预置相对坐标z成功");
+						MDIInput_Script.isXSelected=false;
+						MDIInput_Script.isYSelected=false;
+						MDIInput_Script.isZSelected=false;
+				     	
+				   }
+				   //Main.operationBottomScrExecute=false;
+			     }
+				return;
+			}
+			//宋荣
 			Main.AbsoluteCoo = true;
 			Main.RelativeCoo = false;
 			Main.GeneralCoo = false;
+			//Debug.Log("sdfsdfsdf1234");
 		}
 		//程序界面时按下
 		if(Main.ProgMenu)
@@ -166,6 +263,42 @@ public class SoftkeyModule : MonoBehaviour {
 		//位置界面时按下
 		if(Main.PosMenu)
 		{
+			//宋荣
+			if(Main.posOperationMode)
+			{
+				if(Main.operationBottomScrInitial)
+			    {
+				  
+				   
+				   if((Main.statusBeforeOperation==2||Main.statusBeforeOperation==3)&&(MDIInput_Script.isXSelected||MDIInput_Script.isYSelected||MDIInput_Script.isZSelected))
+				   {
+						if(MDIInput_Script.isXSelected)
+						{
+					        CooSystem_script.relative_pos.x=0;
+							Debug.Log("归零x成功");
+						}
+						
+						if(MDIInput_Script.isYSelected)
+						{
+							
+							CooSystem_script.relative_pos.y=0;
+							Debug.Log("归零Y成功");
+						}
+						if(MDIInput_Script.isZSelected)
+						{
+							CooSystem_script.relative_pos.z=0;
+							Debug.Log("归零Z成功");
+						}
+						MDIInput_Script.isXSelected=false;
+						MDIInput_Script.isYSelected=false;
+						MDIInput_Script.isZSelected=false;
+				     	
+				   }
+				   //Main.operationBottomScrExecute=false;
+			     }
+				return;
+			}
+			//宋荣
 			//相对坐标
 			Main.AbsoluteCoo = false;
 			Main.RelativeCoo = true;
@@ -551,6 +684,10 @@ public class SoftkeyModule : MonoBehaviour {
 		//位置界面时按下
 		if(Main.PosMenu)
 		{
+			//宋荣
+			if(Main.posOperationMode)
+				return;
+			//宋荣
 			//综合显示
 			Main.AbsoluteCoo = false;
 			Main.RelativeCoo = false;
@@ -579,12 +716,19 @@ public class SoftkeyModule : MonoBehaviour {
 	
 	//软键 Button4
 	void FourthButton () 
-	{	
+	{	//宋荣
 		if(Main.PosMenu)
 		{
-			
+			if(Main.operationBottomScrInitial)
+			{
+				Main.operationBottomScrInitial=false;
+				Main.operationBottomScrExecute=true;
+				Main.runtimeIsBlink=false;
+				Main.partsNumBlink=true;
+				//Main.operationBottomScrExecute=false;
+			}
 		}
-		
+		//宋荣
 		if(Main.ProgMenu)
 		{
 			if(Main.ProgEDITFlip == 0)
@@ -622,7 +766,70 @@ public class SoftkeyModule : MonoBehaviour {
 	
 	//软键 Button5
 	void FifthButton () {
-		
+		//宋荣 position模式下响应函数
+		if(Main.PosMenu)
+		{
+			if(!Main.operationBottomScrInitial&&(Main.RelativeCoo||Main.AbsoluteCoo||Main.GeneralCoo))
+			{
+				Main.operationBottomScrInitial=true;
+				Main.posOperationMode=true;
+				if(Main.RelativeCoo)
+					Main.statusBeforeOperation=2;
+				if(Main.AbsoluteCoo)
+					Main.statusBeforeOperation=1;
+				if(Main.GeneralCoo)
+					Main.statusBeforeOperation=3;
+				Main.RelativeCoo=false;
+				Main.AbsoluteCoo=false;
+				Main.GeneralCoo=false;
+				//if(Main.operationBottomScrInitial)
+				 Debug.Log("响应fifth");
+			}
+			
+			else if(Main.operationBottomScrInitial)
+			{
+				Main.operationBottomScrInitial=false;
+				Main.operationBottomScrExecute=true;
+				Main.runtimeIsBlink=true;
+				Debug.Log("runtimeIsBlink变为true");
+				Main.partsNumBlink=false;
+				//Main.operationBottomScrExecute=false;
+			}
+			
+		    else if(Main.operationBottomScrExecute)
+			{
+				Main.operationBottomScrInitial=true;
+				Main.operationBottomScrExecute=false;
+				if(Main.runtimeIsBlink)
+				{
+					Main.RunningTimeH=0;
+					Main.RunningTimeM=0;
+					//Debug.Log("运行时间归零");
+				}
+				if(Main.partsNumBlink)
+				{
+					Main.PartsNum=0;
+				}
+				if(preSetSelected)
+				{
+					if(Main.statusBeforeOperation==1)
+				   {
+					    Pos_Script.preSetAbsoluteCoo=CooSystem_script.absolute_pos;
+						preSetSelected=false;
+				 	    Debug.Log("预置成功");
+				   }
+				 /*  if((Main.statusBeforeOperation==2||Main.statusBeforeOperation==3)&&(MDIInput_Script.isXSelected||MDIInput_Script.isYSelected||MDIInput_Script.isZSelected))
+				   {
+					Pos_Script.preSetRelativeCoo=CooSystem_script.relative_pos;
+					Debug.Log("预置相对坐标成功");
+				   }*/
+				}
+				Main.runtimeIsBlink=false;
+				Main.partsNumBlink=false;
+				//
+			}
+		}
+		//宋荣
 		if(Main.ProgMenu)
 		{
 			if(Main.ProgEDIT)
@@ -673,7 +880,29 @@ public class SoftkeyModule : MonoBehaviour {
 	
 	//向后翻页软键
 	void NextPage () {
-		
+		//宋荣
+		if(Main.PosMenu)
+		{
+			if(!Main.operationBottomScrInitial&&(Main.RelativeCoo||Main.AbsoluteCoo||Main.GeneralCoo))
+			{
+				Main.operationBottomScrInitial=true;
+				Main.posOperationMode=true;
+				if(Main.RelativeCoo)
+					Main.statusBeforeOperation=2;
+				if(Main.AbsoluteCoo)
+					Main.statusBeforeOperation=1;
+				if(Main.GeneralCoo)
+					Main.statusBeforeOperation=3;
+				Main.RelativeCoo=false;
+				Main.AbsoluteCoo=false;
+				Main.GeneralCoo=false;
+				//if(Main.operationBottomScrInitial)
+				 // Debug.Log("响应fifth");
+			}
+			
+			
+		}
+		//宋荣
 		if(Main.ProgMenu)
 		{
 			if(Main.ProgEDIT)
