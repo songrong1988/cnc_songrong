@@ -18,8 +18,8 @@ public class DrawLineTest : MonoBehaviour {
 		Vector.DrawLine3D(line);
 		
 		Debug.Log("vector.drawLine");*/
-		linePoints[0]=new Vector3(4,5,5);
-		linePoints[1]=new Vector3(2,2,-4);
+		linePoints[0]=new Vector3(0,0,0);
+		linePoints[1]=new Vector3(1,2,2);
 		a=new LineDrawer ();
 		a.DrawStraightLine(linePoints[0],linePoints[1],2.0f,Color.yellow,null);
 		nowtime=Time.time;
