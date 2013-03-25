@@ -14,16 +14,39 @@ public class LineDrawer : MonoBehaviour {
 	void Update () {
 	
 	}
-	public void DrawArcLine(Vector3 startPoint,Vector3 endPoint,Vector3 origin,float rads,int planeFlag,int segments,float lineWidth,Color lineColor,Material mat)
+	public void DrawArcLine(Vector3 startPoint,Vector3 endPoint,Vector3 origin,float angle,float rads,int planeFlag,int segments,float lineWidth,Color lineColor,Material mat)
 	{
-		Vector3[] linePoints=new Vector3[segments+1];
-		
+		Vector3[] linePoints=new Vector3[(segments-1)*2+2];
+		linePoints[0]=startPoint;
+		float intervalAngle=angle/segments;
+		float currAngle=intervalAngle;
+		int posIndex=0;
+		for(int i=1;i<=segments-1;i++)
+		{
+			Vector3 nextPoint=CalculateNextPoint(startPoint,endPoint,origin,rads,planeFlag,currAngle,angle);
+			if (posIndex==0)
+				linePoints[posIndex]=startPoint;
+			else
+			    linePoints[posIndex]=linePoints[posIndex-1];
+			Debug.Log(linePoints[posIndex]);
+			linePoints[posIndex+1]=nextPoint;
+			posIndex+=2;
+			currAngle+=intervalAngle;
+			
+			Debug.Log(nextPoint);
+		}
+		Debug.Log(currAngle);
+		linePoints[posIndex]=linePoints[posIndex-1];
+		linePoints[posIndex+1]=endPoint;
+		arcLine=new VectorLine("arc",linePoints,lineColor,mat,lineWidth);
+		Vector.DrawLine3DAuto(arcLine);
 	}
-	public Vector3 CalculateNextPoint(Vector3 stP,Vector3 endP,Vector3 orgn,float r,int planeFlag,float angle)
+	public Vector3 CalculateNextPoint(Vector3 stP,Vector3 endP,Vector3 orgn,float r,int planeFlag,float angle,float arcAngle)
 	{
+		float distance=Mathf.Pow (stP.x-endP.x,2)+Mathf.Pow (stP.y-endP.y,2);
 		//Vector3 nexPos;
 		float c=r*r;
-		float d=(Mathf.Sin(angle/2))*2*r;
+		float d=Mathf.Pow((Mathf.Sin(angle/2))*2*r,2);
 		if(planeFlag==1)//平行于xoy平面画弧线
 		{
 			float x=0;float y=0;
@@ -33,24 +56,24 @@ public class LineDrawer : MonoBehaviour {
 			float j=orgn.x-p;
 			float t=2*(j*q-orgn.y);
 			float s=j*j-c+orgn.y*orgn.y;
-			float temp=t*t-8*s;
+			float temp=t*t-4*s*(q*q+1);
 			if(temp<0)
 			{
-				Debug.LogError("没有符合要求的解！");
+				Debug.LogError("没有符合要求的解fgdfgf！");
 				return new Vector3(0,0,0);
 			}
 			if(temp==0)
 			{
-				y=(-t)/4;
+				y=(-t)/(2*(1+q*q));
 				x=p-q*y;
 				return new Vector3(x,y,stP.z);
 			}
 			else{
-				float y1=(-t+Mathf.Pow(temp,0.5f))/4;
-			    float y2=(-t-Mathf.Pow(temp,0.5f))/4;
+				float y1=(-t+Mathf.Pow(temp,0.5f))/(2*(1+q*q));
+			    float y2=(-t-Mathf.Pow(temp,0.5f))/(2*(1+q*q));
 			    float x1=p-q*y1;
 				float x2=p-q*y2;
-				float absstx=Mathf.Abs(stP.x);
+				/*float absstx=Mathf.Abs(stP.x);
 				float absedx=Mathf.Abs(endP.x);
 				float maxX=(absstx>absedx)?absstx:absedx;
 				float minX=(absstx<absedx)?absstx:absedx;
@@ -61,19 +84,57 @@ public class LineDrawer : MonoBehaviour {
 				float absx1=Mathf.Abs(x1);
 				float absx2=Mathf.Abs(x2);
 				float absy1=Mathf.Abs(y1);
-				float absy2=Mathf.Abs(y2);
-				if(((x1-orgn.x)*(x1-orgn.x)-(y1-orgn.y)*(y1-orgn.y))==r*r&&(absx1>minX&&absx1<maxX&&absy1>minY&&absy1<maxY))
+				float absy2=Mathf.Abs(y2);*/
+				float distance1End=Mathf.Pow(x1-endP.x,2)+Mathf.Pow(y1-endP.y,2);
+				float distance2End=Mathf.Pow(x2-endP.x,2)+Mathf.Pow(y2-endP.y,2);
+				if(arcAngle<3.1416)
 				{
+				   if(distance1End<distance2End)
+				   {
 					return new Vector3(x1,y1,stP.z);
-				}
-				else if(((x2-orgn.x)*(x2-orgn.x)-(y2-orgn.y)*(y2-orgn.y))==r*r&&(absx2>minX&&absx2<maxX&&absy2>minY&&absy2<maxY))
-				{
+				    }
+				   else if(distance2End<distance1End)
+				    {
 					return new Vector3(x2,y2,stP.z);
-				}
-				else{
+				    }
+				   else{
 					Debug.LogError("没有符合要求的解！");
 					return new Vector3(0,0,0);
+				   }
 				}
+				else{
+					if(angle<3.1416)
+					{
+						if(distance1End>distance2End)
+				        {
+					      return new Vector3(x1,y1,stP.z);
+				        }
+				        else if(distance2End>distance1End)
+				        {
+					       return new Vector3(x2,y2,stP.z);
+				         }
+				         else{
+					        Debug.LogError("没有符合要求的解！");
+					        return new Vector3(0,0,0);
+				          }
+					}
+					else if(angle>3.1416)
+					{
+						if(distance1End<distance2End)
+				       {
+					      return new Vector3(x1,y1,stP.z);
+				        }
+				        else if(distance2End<distance1End)
+				        {
+					       return new Vector3(x2,y2,stP.z);
+				         }
+				        else{
+					       Debug.LogError("没有符合要求的解！");
+					       return new Vector3(0,0,0);
+				         }
+					}
+				}
+				
 			}
 			
 		}
@@ -86,46 +147,71 @@ public class LineDrawer : MonoBehaviour {
 			float j=orgn.x-p;
 			float t=2*(j*q-orgn.z);
 			float s=j*j-c+orgn.z*orgn.z;
-			float temp=t*t-8*s;
+			float temp=t*t-4*s*(q*q+1);
 			if(temp<0)
 			{
-				Debug.LogError("没有符合要求的解！");
+				Debug.LogError("没有符合要求的解！hhhhhhhhh");
 				return new Vector3(0,0,0);
 			}
 			if(temp==0)
 			{
-				z=(-t)/4;
+				z=(-t)/(2*(1+q*q));
 				x=p-q*z;
 				return new Vector3(x,stP.y,z);
 			}
 			else{
-				float z1=(-t+Mathf.Pow(temp,0.5f))/4;
-			    float z2=(-t-Mathf.Pow(temp,0.5f))/4;
+				float z1=(-t+Mathf.Pow(temp,0.5f))/(2*(1+q*q));
+			    float z2=(-t-Mathf.Pow(temp,0.5f))/(2*(1+q*q));
 			    float x1=p-q*z1;
 				float x2=p-q*z2;
-				float absstx=Mathf.Abs(stP.x);
-				float absedx=Mathf.Abs(endP.x);
-				float maxX=(absstx>absedx)?absstx:absedx;
-				float minX=(absstx<absedx)?absstx:absedx;
-				float absstz=Mathf.Abs(stP.z);
-				float absedz=Mathf.Abs(endP.z);
-				float maxz=(absstz>absedz)?absstz:absedz;
-				float minz=(absstz<absedz)?absstz:absedz;
-				float absx1=Mathf.Abs(x1);
-				float absx2=Mathf.Abs(x2);
-				float absz1=Mathf.Abs(z1);
-				float absz2=Mathf.Abs(z2);
-				if(((x1-orgn.x)*(x1-orgn.x)-(z1-orgn.z)*(z1-orgn.z))==r*r&&(absx1>minX&&absx1<maxX&&absz1>minz&&absz1<maxz))
+				float distance1End=Mathf.Pow(x1-endP.x,2)+Mathf.Pow(z1-endP.z,2);
+				float distance2End=Mathf.Pow(x2-endP.x,2)+Mathf.Pow(z2-endP.z,2);
+				if(arcAngle<3.1416)
 				{
+				   if(distance1End<=distance2End)
+				   {
 					return new Vector3(x1,stP.y,z1);
-				}
-				else if(((x2-orgn.x)*(x2-orgn.x)-(z2-orgn.z)*(z2-orgn.z))==r*r&&(absx2>minX&&absx2<maxX&&absz2>minz&&absz2<maxz))
-				{
+				    }
+				   else if(distance2End<distance1End)
+				    {
 					return new Vector3(x2,stP.y,z2);
-				}
-				else{
+				    }
+				   else{
 					Debug.LogError("没有符合要求的解！");
 					return new Vector3(0,0,0);
+				   }
+				}
+				else{
+					if(angle<3.1416)
+					{
+						if(distance1End>distance2End)
+				        {
+					     return new Vector3(x1,stP.y,z1);
+				        }
+				        else if(distance2End>distance1End)
+				        {
+					       return new Vector3(x2,stP.y,z2);
+				         }
+				         else{
+					        Debug.LogError("没有符合要求的解！");
+					        return new Vector3(0,0,0);
+				          }
+					}
+					else if(angle>3.1416)
+					{
+						if(distance1End<distance2End)
+				       {
+					      return new Vector3(x1,stP.y,z1);
+				        }
+				        else if(distance2End<distance1End)
+				        {
+					       return new Vector3(x2,stP.y,z2);
+				         }
+				        else{
+					       Debug.LogError("没有符合要求的解！");
+					       return new Vector3(0,0,0);
+				         }
+					}
 				}
 			}
 			
@@ -139,7 +225,7 @@ public class LineDrawer : MonoBehaviour {
 			float j=orgn.y-p;
 			float t=2*(j*q-orgn.z);
 			float s=j*j-c+orgn.z*orgn.z;
-			float temp=t*t-8*s;
+			float temp=t*t-4*s*(q*q+1);
 			if(temp<0)
 			{
 				Debug.LogError("没有符合要求的解！");
@@ -147,39 +233,65 @@ public class LineDrawer : MonoBehaviour {
 			}
 			if(temp==0)
 			{
-				z=(-t)/4;
+				z=(-t)/(2*(1+q*q));;
 				y= p-q*z;
 				return new Vector3(stP.x,y,z);
 			}
 			else{
-				float z1=(-t+Mathf.Pow(temp,0.5f))/4;
-			    float z2=(-t-Mathf.Pow(temp,0.5f))/4;
+				float z1=(-t+Mathf.Pow(temp,0.5f))/(2*(1+q*q));
+			    float z2=(-t-Mathf.Pow(temp,0.5f))/(2*(1+q*q));
 			    float y1=p-q*z1;
 				float y2=p-q*z2;
-				float abssty=Mathf.Abs(stP.y);
-				float absedy=Mathf.Abs(endP.y);
-				float maxY=(abssty>absedy)?abssty:absedy;
-				float minY=(abssty<absedy)?abssty:absedy;
-				float absstz=Mathf.Abs(stP.z);
-				float absedz=Mathf.Abs(endP.z);
-				float maxz=(absstz>absedz)?absstz:absedz;
-				float minz=(absstz<absedz)?absstz:absedz;
-				float absy1=Mathf.Abs(y1);
-				float absy2=Mathf.Abs(y2);
-				float absz1=Mathf.Abs(z1);
-				float absz2=Mathf.Abs(z2);
-				if(((y1-orgn.y)*(y1-orgn.y)-(z1-orgn.z)*(z1-orgn.z))==r*r&&(absy1>minY&&absy1<maxY&&absz1>minz&&absz1<maxz))
+				float distance1End=Mathf.Pow(y1-endP.y,2)+Mathf.Pow(z1-endP.z,2);
+				float distance2End=Mathf.Pow(y2-endP.y,2)+Mathf.Pow(z2-endP.z,2);
+				if(arcAngle<3.1416)
 				{
+				   if(distance1End<distance2End)
+				   {
 					return new Vector3(stP.x,y1,z1);
-				}
-				else if(((y2-orgn.y)*(y2-orgn.y)-(z2-orgn.z)*(z2-orgn.z))==r*r&&(absy2>minY&&absy2<maxY&&absz2>minz&&absz2<maxz))
-				{
+				    }
+				   else if(distance2End<distance1End)
+				    {
 					return new Vector3(stP.x,y2,z2);
-				}
-				else{
+				    }
+				   else{
 					Debug.LogError("没有符合要求的解！");
 					return new Vector3(0,0,0);
+				   }
 				}
+				else{
+					if(angle<3.1416)
+					{
+						if(distance1End>distance2End)
+				        {
+					     return new Vector3(stP.x,y1,z1);
+				        }
+				        else if(distance2End>distance1End)
+				        {
+					       return new Vector3(stP.x,y2,z2);
+				         }
+				         else{
+					        Debug.LogError("没有符合要求的解！");
+					        return new Vector3(0,0,0);
+				          }
+					}
+					else if(angle>3.1416)
+					{
+						if(distance1End<distance2End)
+				       {
+					      return new Vector3(stP.x,y1,z1);
+				        }
+				        else if(distance2End<distance1End)
+				        {
+					       return new Vector3(stP.x,y2,z2);
+				         }
+				        else{
+					       Debug.LogError("没有符合要求的解！");
+					       return new Vector3(0,0,0);
+				         }
+					}
+				}
+				
 			}
 			
 		}
@@ -189,11 +301,11 @@ public class LineDrawer : MonoBehaviour {
 	public void DrawStraightLine(Vector3 startPoint,Vector3 endPoint,float lineWidth,Color lineColor,Material mat)
 	{
 		
-		Vector3[] line=new Vector3[4];
+		Vector3[] line=new Vector3[2];
 		line[0]=startPoint;
 		line[1]=endPoint;
-		line[2]=endPoint;
-		line[3]=new Vector3(5,5,5);
+		//line[2]=endPoint;
+		//line[3]=new Vector3(5,5,5);
 		straightLine=new VectorLine("line",line,lineColor,mat,lineWidth);
 		Vector.DrawLine3DAuto(straightLine);
 	}
