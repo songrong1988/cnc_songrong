@@ -112,7 +112,7 @@ public class MDIFunctionModule : MonoBehaviour {
 			Main.CursorText.text = Main.InputText;
 			Main.ProgEDITCusorPos = 57f;
 		}
-		
+		//宋荣
 		if(Main.PosMenu)
 		{
 			if(Main.AbsoluteCoo)
@@ -133,13 +133,40 @@ public class MDIFunctionModule : MonoBehaviour {
 				Main.RelativeCoo = false;
 				Main.GeneralCoo = false;
 			}
+			if(Main.operationBottomScrInitial||Main.operationBottomScrExecute)
+			{
+				if(Main.statusBeforeOperation==1)
+			   {
+				  Main.AbsoluteCoo = false;
+				  Main.RelativeCoo = true;
+				  Main.GeneralCoo = false;
+			   }
+			   else if(Main.statusBeforeOperation==2)
+			   {
+				  Main.AbsoluteCoo = false;
+				  Main.RelativeCoo = false;
+				  Main.GeneralCoo = true;
+			   }
+			   else if(Main.statusBeforeOperation==3){
+				  Main.AbsoluteCoo = true;
+				  Main.RelativeCoo = false;
+				  Main.GeneralCoo = false;
+			   }
+			   Main.posOperationMode=false;
+			   Main.operationBottomScrExecute=false;
+			   Main.operationBottomScrInitial=false;
+			}
+			
+			
 		}
+		//宋荣
 		else
 		{
 			Main.PosMenu = true;
 			Main.ProgMenu = false;
 			Main.SettingMenu = false;
 		}
+		
 	}
 	
 	void ProgButton ()
