@@ -50,12 +50,13 @@ public class LineManager : MonoBehaviour {
 
 	void LateUpdate () {
 		if (!Vector.camTransformExists) return;
-
+		
 		// Only redraw if camera is moving			
 		if (Vector.oldPosition != Vector.camTransformPosition || Vector.oldRotation != Vector.camTransformEulerAngles) {
 			for (int i = 0; i < lineCount; i++) {
 				if (lines[i].vectorObject != null) {
 					Vector.DrawLine3D (lines[i], transforms[i]);
+					Debug.Log("dfsdf");
 				}
 				else {
 					RemoveLine (i--);

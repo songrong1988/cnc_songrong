@@ -273,7 +273,7 @@ public class VectorLine {
 		}
 		else {
 			if (useSegmentColors && colors.Length != pointsLength) {
-				Debug.LogWarning("VectorLine: Length of color array for \"" + lineName + "\" must be the same length as the points array...disabling segment colors");
+				//Debug.LogWarning("VectorLine: Length of color array for \"" + lineName + "\" must be the same length as the points array...disabling segment colors");
 				useSegmentColors = false;
 			}
 		}
@@ -284,13 +284,14 @@ public class VectorLine {
 			}
 			useMaterial = VectorMaterial.defaultLineMaterial;
 		}
-	
+	    Debug.Log("usesegmentcolor"+useSegmentColors);
 		mesh = new Mesh();
 		mesh.name = lineName;
 		vectorObject = new GameObject("Vector "+lineName, typeof(MeshRenderer));
 		vectorObject.layer = Vector.vectorLayer;
 		meshFilter = (MeshFilter)vectorObject.AddComponent(typeof(MeshFilter));
-		vectorObject.renderer.material = useMaterial;
+		vectorObject.renderer.material=useMaterial;
+	//	vectorObject.renderer.material.color=colors[0];
 		meshFilter.mesh = mesh;		
 		BuildMesh (pointsLength, use2Dlines, useSegmentColors, colors);
 	}
@@ -354,12 +355,12 @@ public class VectorLine {
 		
 		if (continuousLine) {
 			if (!m_isPoints) {
-				vertLength = (pointsLength-1)*4;
-				triLength = (pointsLength-1)*6;
+				vertLength = (pointsLength-1)*12;
+				triLength = (pointsLength-1)*24;
 			}
 			else {
-				vertLength = (pointsLength)*4;
-				triLength = (pointsLength)*6;
+				vertLength = (pointsLength)*12;
+				triLength = (pointsLength)*24;
 			}
 			if (m_fillJoins) {
 				triLength += (pointsLength-2)*6;
@@ -371,14 +372,16 @@ public class VectorLine {
 			}
 		}
 		else {
-			vertLength = pointsLength*2;
-			triLength = pointsLength/2 * 6;
+			vertLength = pointsLength*6;
+			triLength = pointsLength/2 * 6*6;
 		}
 		if (vertLength > 65534) {
 			Debug.LogError("VectorLine: exceeded maximum vertex count of 65534 for \"" + vectorObject.name + "\"...use fewer points");
 			return;
 		}
-		
+		Debug.Log("vertLength");
+		Debug.Log(vertLength);
+		Debug.Log(triLength);
 		lineVertices = new Vector3[vertLength];
 		int[] newTriangles = new int[triLength];
 		lineUVs = new Vector2[vertLength];
@@ -403,31 +406,69 @@ public class VectorLine {
 		if (useSegmentColors) {
 			lineColors = new Color[vertLength];
 			idx = 0;
-			for (int i = 0; i < colors.Length; i++) {
-				lineColors[idx]   = colors[i];
-				lineColors[idx+1] = colors[i];
-				lineColors[idx+2] = colors[i];
-				lineColors[idx+3] = colors[i];
-				idx += 4;
+			for (int i = 0; i <vertLength ; i++) {
+				lineColors[idx+i]   = colors[0];
+				
 			}
 		}
 		
 		idx = 0;
 		if (!m_isPoints) {
-			end = continuousLine? (pointsLength-1)*4 : pointsLength*2;
+			end = continuousLine? (pointsLength-1)*12 : pointsLength*6;
 		}
 		else {
-			end = pointsLength*4;			
+			end = (pointsLength-1)*12;			
 		}
-		for (int i = 0; i < end; i += 4) {
+		Debug.Log("end:"+end);
+		for (int i = 0; i < end; i += 12) {
 			newTriangles[idx]   = i;
 			newTriangles[idx+1] = i+2;
 			newTriangles[idx+2] = i+1;
 	
-			newTriangles[idx+3] = i+2;
+			newTriangles[idx+3] = i+1;
 			newTriangles[idx+4] = i+3;
-			newTriangles[idx+5] = i+1;
-			idx += 6;
+			newTriangles[idx+5] = i+2;
+			
+	        newTriangles[idx+6]  = i;
+			newTriangles[idx+7] = i+2;
+			newTriangles[idx+8] = i+11;
+	
+			newTriangles[idx+9] = i+0;
+			newTriangles[idx+10] = i+5;
+			newTriangles[idx+11] = i+11;
+			
+	     	newTriangles[idx+12]   = i+1;
+			newTriangles[idx+13] = i+3;
+			newTriangles[idx+14] = i+9;
+	
+			newTriangles[idx+15] = i+7;
+			newTriangles[idx+16] = i+1;
+			newTriangles[idx+17] = i+9;
+			
+	    	newTriangles[idx+18]   = i+5;
+			newTriangles[idx+19] = i+11;
+			newTriangles[idx+20] = i+7;
+	
+			newTriangles[idx+21] = i+7;
+			newTriangles[idx+22] = i+11;
+			newTriangles[idx+23] = i+9;
+			
+			newTriangles[idx+24]   = i+5;
+			newTriangles[idx+25] = i+1;
+			newTriangles[idx+26] = i;
+	
+			newTriangles[idx+27] = i+7;
+			newTriangles[idx+28] = i+1;
+			newTriangles[idx+29] = i+5;
+			
+			newTriangles[idx+30]   = i+2;
+			newTriangles[idx+31] = i+11;
+			newTriangles[idx+32] = i+3;
+	
+			newTriangles[idx+33] = i+3;
+			newTriangles[idx+34] = i+11;
+			newTriangles[idx+35] = i+9;
+			idx += 36;
 		}
 		
 		if (m_fillJoins) {
@@ -455,10 +496,12 @@ public class VectorLine {
 		}
 
 		mesh.vertices = lineVertices;
-		mesh.uv = lineUVs;
-		if (useSegmentColors) {
-			mesh.colors = lineColors;
-		}
+	mesh.RecalculateNormals();
+		//mesh.uv = lineUVs;
+		//if (useSegmentColors) {
+		//	mesh.colors = lineColors;
+		//}
+		mesh.colors=lineColors;
 		mesh.triangles = newTriangles;
 		
 		if (!use2Dlines) {

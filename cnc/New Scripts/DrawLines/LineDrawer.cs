@@ -75,12 +75,12 @@ public class LineDrawer : MonoBehaviour {
 		linePoints[posIndex]=linePoints[posIndex-1];
 		linePoints[posIndex+1]=endPoint;
 		arcLine=new VectorLine("arc",linePoints,lineColor,mat,lineWidth);
-		Vector.DrawLine3DAuto(arcLine);
+		Vector.DrawLine3D(arcLine);
 	}
 	
 	public Vector3 CalculateNextPoint(Vector3 stP,Vector3 endP,Vector3 orgn,float r,int planeFlag,float angle,float arcAngle)
 	{
-		float distance=Mathf.Pow (stP.x-endP.x,2)+Mathf.Pow (stP.y-endP.y,2);
+		//float distance=Mathf.Pow (stP.x-endP.x,2)+Mathf.Pow (stP.y-endP.y,2);
 		//Vector3 nexPos;
 		float c=r*r;
 		float d=Mathf.Pow((Mathf.Sin(angle/2))*2*r,2);
@@ -363,7 +363,7 @@ public class LineDrawer : MonoBehaviour {
 		//line[2]=endPoint;
 		//line[3]=new Vector3(5,5,5);
 		straightLine=new VectorLine("line",line,lineColor,mat,lineWidth);
-		Vector.DrawLine3DAuto(straightLine);
+		Vector.DrawLine3D(straightLine);
 	}
 	
 	

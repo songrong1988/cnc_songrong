@@ -599,7 +599,7 @@ public class Vector {
 		var thisMatrix = useTransformMatrix? thisTransform.localToWorldMatrix : Matrix4x4.identity;
 		int end = (line.maxDrawIndex == 0)? line.points3.Length-1 : line.maxDrawIndex;
 		int add = line.continuousLine? 1 : 2;
-		int idx = line.minDrawIndex*4;
+		int idx = line.minDrawIndex*12;
 		int widthIdx = 0;
 		widthIdxAdd = 0;
 		if (line.lineWidths.Length > 1) {
@@ -612,7 +612,8 @@ public class Vector {
 		}
 		var pos1 = Vector3.zero;
 		var pos2 = Vector3.zero;
-		
+		Debug.Log("widthidx");
+		Debug.Log(widthIdx);
 		for (int i = line.minDrawIndex; i < end; i += add) {
 			if (useTransformMatrix) {
 				pos1 = cam3D.WorldToScreenPoint(thisMatrix.MultiplyPoint3x4(line.points3[i]));
@@ -623,16 +624,22 @@ public class Vector {
 				pos2 = cam3D.WorldToScreenPoint(line.points3[i+1]);
 			}
 			
+			//Debug.Log("pos1"+pos1);
+			//Debug.Log("pos2"+pos2);
+			
 			v1.x = pos2.y; v1.y = pos1.x;
 			v2.x = pos1.y; v2.y = pos2.x;
 			Vector3 thisLine = (v1 - v2).normalized;
-			Vector3 perpendicular = thisLine * line.lineWidths[widthIdx];
-			
+			Vector3 perpendicular = thisLine * (line.lineWidths[widthIdx]/0.01f)/1.2f;
+			//Debug.Log(line.lineWidths[0]);
+			//Debug.Log(perpendicular);
 			line.screenPoints[idx]   = pos1 - perpendicular;	// Used for Joins.Weld
 			line.screenPoints[idx+1] = pos1 + perpendicular;
 			line.lineVertices[idx]   = cam3D.ScreenToWorldPoint(line.screenPoints[idx]);
 			line.lineVertices[idx+1] = cam3D.ScreenToWorldPoint(line.screenPoints[idx+1]);
-			
+		//	float distance=(line.lineVertices[idx].x-line.lineVertices[idx+1].x)*(line.lineVertices[idx].x-line.lineVertices[idx+1].x)+(line.lineVertices[idx].y-line.lineVertices[idx+1].y)*(line.lineVertices[idx].y-line.lineVertices[idx+1].y);
+			//distance=Mathf.Pow(distance,0.5f);
+		//	Debug.Log("distance:"+distance);
 			if (line.smoothWidth && i < end-add) {
 				perpendicular = thisLine * line.lineWidths[widthIdx+1];
 			}
@@ -641,8 +648,37 @@ public class Vector {
 			line.lineVertices[idx+2] = cam3D.ScreenToWorldPoint(line.screenPoints[idx+2]);
 			line.lineVertices[idx+3] = cam3D.ScreenToWorldPoint(line.screenPoints[idx+3]);
 			
-			idx += 4;
+		/*	Vector3 theNormal = Vector3.Cross(line.points3[i], line.points3[i+1]);
+            Vector3  theSide = Vector3.Cross(theNormal, line.points3[i+1]-line.points3[i]);
+              theSide.Normalize();
+			 line.lineVertices[idx+3] = line.points3[i] + theSide * (line.lineWidths[widthIdx]);
+             line.lineVertices[idx+2] = line.points3[i] - theSide * (line.lineWidths[widthIdx]);
+             line.lineVertices[idx+1] = line.points3[i+1] + theSide* (line.lineWidths[widthIdx]);
+             line.lineVertices[idx] = line.points3[i+1] - theSide * (line.lineWidths[widthIdx]);*/
+			Vector3 side0=Vector3.Cross((-line.lineVertices[idx+2]+line.lineVertices[idx]),(line.lineVertices[idx+1]-line.lineVertices[idx]));
+			side0.Normalize();
+			line.lineVertices[idx+4]=line.lineVertices[idx]+side0*line.lineWidths[widthIdx];
+			line.lineVertices[idx+5]=line.lineVertices[idx]-side0*line.lineWidths[widthIdx];
+			Vector3 side1=Vector3.Cross((line.lineVertices[idx+3]-line.lineVertices[idx+1]),(line.lineVertices[idx]-line.lineVertices[idx+1]));
+			side1.Normalize();
+			line.lineVertices[idx+6]=line.lineVertices[idx+1]+side1*line.lineWidths[widthIdx];
+			line.lineVertices[idx+7]=line.lineVertices[idx+1]-side1*line.lineWidths[widthIdx];
+			Vector3 side3=Vector3.Cross((line.lineVertices[idx+2]-line.lineVertices[idx+3]),(line.lineVertices[idx+1]-line.lineVertices[idx+3]));
+			side3.Normalize();
+			line.lineVertices[idx+8]=line.lineVertices[idx+3]+side3*line.lineWidths[widthIdx];
+			line.lineVertices[idx+9]=line.lineVertices[idx+3]-side3*line.lineWidths[widthIdx];
+			Vector3 side2=Vector3.Cross((line.lineVertices[idx]-line.lineVertices[idx+2]),(line.lineVertices[idx+3]-line.lineVertices[idx+2]));
+			side2.Normalize();
+			line.lineVertices[idx+10]=line.lineVertices[idx+2]+side2*line.lineWidths[widthIdx];
+			line.lineVertices[idx+11]=line.lineVertices[idx+2]-side2*line.lineWidths[widthIdx];
+			//Debug.Log(line.lineVertices[idx]);
+			//Debug.Log(line.lineVertices[idx+1]);
+			//Debug.Log(line.lineVertices[idx+2]);
+			//Debug.Log(line.lineVertices[idx+3]);
+			idx += 12;
 			widthIdx += widthIdxAdd;
+			Debug.Log ("1");
+			Debug.Log("linewidth:"+line.lineWidths[widthIdx]);
 		}
 		
 		if (line.weldJoins) {
@@ -655,7 +691,8 @@ public class Vector {
 					&& line.minDrawIndex == 0 && (line.maxDrawIndex == line.points3.Length-1 || line.maxDrawIndex == 0));
 			}
 		}
-		
+		Debug.Log("end");
+		Debug.Log(end);
 		line.mesh.vertices = line.lineVertices;
 		line.mesh.RecalculateBounds();
 	}
